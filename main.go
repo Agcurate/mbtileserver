@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
+
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -82,6 +84,10 @@ var (
 )
 
 func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	flags := rootCmd.Flags()
 	flags.IntVarP(&port, "port", "p", -1, "Server port. Default is 443 if --cert or --tls options are used, otherwise 8000.")
 	flags.StringVarP(&tilePath, "dir", "d", "./tilesets", "Directory containing mbtiles files.  Can be a comma-delimited list of directories.")
@@ -140,6 +146,7 @@ func init() {
 	if env := os.Getenv("DOMAIN"); env != "" {
 		domain = env
 	}
+
 	if secretKey == "" {
 		secretKey = os.Getenv("HMAC_SECRET_KEY")
 	}
