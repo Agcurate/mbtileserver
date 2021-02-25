@@ -5,10 +5,8 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -18,7 +16,7 @@ import (
 type HandlerWrapper func(http.Handler) http.Handler
 
 // cookie signature
-type CustomCookie struct {
+type CustomSignature struct {
 	SignDate     string `json:"signDate"`
 	RawSignature string `json:"rawSignature"`
 }
@@ -34,57 +32,57 @@ func HMACAuthMiddleware(secretKey string, serviceSet *ServiceSet) HandlerWrapper
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-			// query := r.URL.Query()
+			query := r.URL.Query()
 
-			// rawSignature := query.Get("signature")
-			// if rawSignature == "" {
-			// 	rawSignature = r.Header.Get("X-Signature")
-			// }
-			// if rawSignature == "" {
-			// 	http.Error(w, "No signature provided", http.StatusUnauthorized)
-			// 	return
-			// }
-
-			// rawSignDate := query.Get("date")
-			// if rawSignDate == "" {
-			// 	rawSignDate = r.Header.Get("X-Signature-Date")
-			// }
-			// if rawSignDate == "" {
-			// 	http.Error(w, "No signature date provided", http.StatusUnauthorized)
-			// 	return
-			// }
-
-			cookie, err := r.Cookie("signature")
-			if err != nil {
-				http.Error(w, "No signature provided", http.StatusUnauthorized)
-				return
+			rawSignature := query.Get("signature")
+			if rawSignature == "" {
+				rawSignature = r.Header.Get("X-Signature")
 			}
-			fmt.Printf("%s=%s\r\n", cookie.Name, cookie.Value)
-
-			data, err := url.QueryUnescape(cookie.Value)
-			// fmt.Println(data)
-			s := string(data)
-			customCookie := &CustomCookie{}
-			err = json.Unmarshal([]byte(s), customCookie)
-			if err != nil {
-				http.Error(w, "Cant parse the cookie", http.StatusUnauthorized)
-				return
-			}
-
-			fmt.Printf("signDate: %s\n", customCookie.SignDate)
-			fmt.Printf("rawSignature: %s\n", customCookie.RawSignature)
-
-			rawSignature := customCookie.RawSignature
 			if rawSignature == "" {
 				http.Error(w, "No signature provided", http.StatusUnauthorized)
 				return
 			}
 
-			rawSignDate := customCookie.SignDate
+			rawSignDate := query.Get("date")
+			if rawSignDate == "" {
+				rawSignDate = r.Header.Get("X-Signature-Date")
+			}
 			if rawSignDate == "" {
 				http.Error(w, "No signature date provided", http.StatusUnauthorized)
 				return
 			}
+
+			// cookie, err := r.Cookie("signature")
+			// if err != nil {
+			// 	http.Error(w, "No signature provided", http.StatusUnauthorized)
+			// 	return
+			// }
+			// fmt.Printf("%s=%s\r\n", cookie.Name, cookie.Value)
+
+			// data, err := url.QueryUnescape(signature)
+			// fmt.Println(data)
+			// s := string(signature)
+			// customSignature := &CustomSignature{}
+			// err := json.Unmarshal([]byte(s), customSignature)
+			// if err != nil {
+			// 	http.Error(w, "Cant parse the header signature", http.StatusUnauthorized)
+			// 	return
+			// }
+
+			fmt.Printf("signDate: %s\n", rawSignDate)
+			fmt.Printf("signature: %s\n", rawSignature)
+
+			// rawSignature := customSignature.RawSignature
+			// if rawSignature == "" {
+			// 	http.Error(w, "No signature provided", http.StatusUnauthorized)
+			// 	return
+			// }
+
+			// rawSignDate := customSignature.SignDate
+			// if rawSignDate == "" {
+			// 	http.Error(w, "No signature date provided", http.StatusUnauthorized)
+			// 	return
+			// }
 
 			signDate, err := time.Parse(time.RFC3339Nano, rawSignDate)
 			if err != nil {
