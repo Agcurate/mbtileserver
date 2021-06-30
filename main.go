@@ -81,6 +81,7 @@ var (
 	disableTileJSON    bool
 	disableServiceList bool
 	tilesOnly          bool
+	allowed_url				 string
 )
 
 func init() {
@@ -303,13 +304,19 @@ func serve() {
 	// print number of services
 	log.Infof("Published %v services", svcSet.Size())
 
+	if env := os.Getenv("ALLOW_URL"); env != "" {
+		allowed_url = env
+	} else {
+		allowed_url = "http://localhost:8000"
+	}
+
 	e := echo.New()
 	e.HideBanner = true
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
 	// e.Use(middleware.CORS())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:8000"},
+		AllowOrigins:     []string{allowed_url},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, "X-Signature", "X-Signature-Date"},
 		AllowCredentials: true,
 	}))
