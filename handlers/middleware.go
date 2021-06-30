@@ -69,8 +69,8 @@ func HMACAuthMiddleware(secretKey string, serviceSet *ServiceSet) HandlerWrapper
 			// 	return
 			// }
 
-			fmt.Printf("signDate: %s\n", rawSignDate)
-			fmt.Printf("signature: %s\n", rawSignature)
+			// fmt.Printf("signDate: %s\n", rawSignDate)
+			// fmt.Printf("signature: %s\n", rawSignature)
 
 			// rawSignature := customSignature.RawSignature
 			// if rawSignature == "" {
